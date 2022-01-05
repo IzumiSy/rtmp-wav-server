@@ -38,6 +38,18 @@ func main() {
 		}
 		defer decoder.Close()
 
+		pcmReader, pcmWriter := io.Pipe()
+		defer pcmWriter.Close()
+
+		go func() {
+			defer pcmReader.Close()
+			if _, err := io.Copy(file, pcmReader); err == io.EOF {
+				return
+			} else if err != nil {
+				log.Fatal(err)
+			}
+		}()
+
 		// Read packets
 		pcmBuffer := new(bytes.Buffer)
 		pcmBuffer.Grow(256)
@@ -49,16 +61,9 @@ func main() {
 				return
 			} else {
 				pcmBuffer.Reset()
-				if err := decoder.Decode(pkt.Data, pcmBuffer); err != nil {
+				if err := decoder.Decode(pkt.Data, pcmWriter); err != nil {
 					log.Fatal(err)
 				}
-
-				written, err := file.Write(pcmBuffer.Bytes())
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				log.Printf("Chunk: %d --> PCM %d", len(pkt.Data), written)
 			}
 		}
 
