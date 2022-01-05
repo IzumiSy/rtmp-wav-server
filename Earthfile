@@ -19,9 +19,16 @@ build:
   COPY +fdkaac/fdkaac-lib /usr/lib/fdk-aac
   COPY main.go .
   RUN go build -o build/rtmp-wav-server main.go
-  SAVE ARTIFACT build/rtmp-wav-server
+  SAVE ARTIFACT  build/rtmp-wav-server
+
+image:
+  COPY +build/rtmp-wav-server .
+  EXPOSE 1935
+  ENTRYPOINT ["/rtmp-wav-server/rtmp-wav-server"]
+  SAVE IMAGE rtmp-wav-server:latest
 
 run:
   LOCALLY
-  COPY +build/rtmp-wav-server .
-  RUN ./rtmp-wav-server
+  WITH DOCKER --load server:latest=+image
+    RUN docker run --rm -p 1935:1935 server:latest
+  END
