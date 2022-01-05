@@ -2,7 +2,7 @@ Decode AAC (broadcasted on RTMP) to PCM on the fly with FDKAAC
 
 ## Run server
 ```bash
-$ go run main.go
+$ earthly +run
 ```
 
 ## Broadcast to server
